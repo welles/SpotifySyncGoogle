@@ -25,9 +25,7 @@ function SavedSongs() {
   for (var i = 0; i < addedSongs.length; i++) {
     Logger.log("Adding \"%s\" by %s to saved songs...", addedSongs[i].track.name, addedSongs[i].track.artists[0].name);
     
-    addSongToPlaylist(accessToken, addedSongs[i].track.uri, savedSongsPlaylistId);    
-
-    Utilities.sleep(1000);
+    addSongToPlaylist(accessToken, addedSongs[i].track.uri, savedSongsPlaylistId);
   }
 
   var removedSongs = savedSongs.filter(s => !likedSongs.map(x => x.track.id).includes(s.track.id));
@@ -40,8 +38,6 @@ function SavedSongs() {
     removeSongFromPlaylist(accessToken, removedSongs[i].track.uri, savedSongsPlaylistId);
 
     addSongToPlaylist(accessToken, removedSongs[i].track.uri, savedArchivePlaylistId);
-
-    Utilities.sleep(1000);
   }
 
   if (addedSongs.length > 0) {

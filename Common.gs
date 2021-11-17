@@ -92,11 +92,7 @@ function addSongToPlaylist(accessToken, songUri, playlistId) {
     payload: JSON.stringify(payload)
   };
 
-  var result = UrlFetchApp.fetch(url, params);
-
-  var data = JSON.parse(result.getContentText());
-
-  //return result.getResponseCode() == 200;
+  var data = getJsonResult(url, params);
 }
 
 function removeSongFromPlaylist(accessToken, songUri, playlistId) {
@@ -113,11 +109,7 @@ function removeSongFromPlaylist(accessToken, songUri, playlistId) {
     payload: JSON.stringify(payload)
   };
 
-  var result = UrlFetchApp.fetch(url, params);
-
-  var data = JSON.parse(result.getContentText());
-
-  //return result.getResponseCode() == 200;
+  var data = getJsonResult(url, params);
 }
 
 function getPlaylistSongs(accessToken, playlistId) {
@@ -131,13 +123,9 @@ function getPlaylistSongs(accessToken, playlistId) {
       headers: { "Authorization": "Bearer " + accessToken },
     };
 
-    var result = UrlFetchApp.fetch(url, params);
-
-    var data = JSON.parse(result.getContentText());
+    var data = getJsonResult(url, params);
 
     playlistSongs = playlistSongs.concat(data.items);
-
-    Utilities.sleep(100);
   }
   while (playlistSongs.length < data.total);
 
@@ -155,13 +143,9 @@ function getLikedSongs(accessToken) {
       headers: { "Authorization": "Bearer " + accessToken },
     };
 
-    var result = UrlFetchApp.fetch(url, params);
-
-    var data = JSON.parse(result.getContentText());
+    var data = getJsonResult(url, params);
 
     likedSongs = likedSongs.concat(data.items);
-
-    Utilities.sleep(100);
   }
   while (likedSongs.length < data.total);
 
@@ -174,12 +158,48 @@ function getAccessToken(clientId, clientSecret, refreshToken) {
   {
     method: "POST",
     headers: { "Authorization": "Basic " + Utilities.base64Encode(clientId + ":" + clientSecret) },
-    payload: { grant_type: "refresh_token", refresh_token: refreshToken },
+    payload: { grant_type: "refresh_token", refresh_token: refreshToken }
   };
 
-  var result = UrlFetchApp.fetch(url, params);
-
-  var data = JSON.parse(result.getContentText());
+  var data = getJsonResult(url, params);
 
   return data.access_token;
+}
+
+function getJsonResult(url, params) {
+  //Override HTTP exception handling
+  params.muteHttpExceptions = true;
+
+  var response;
+  var tries = 0;
+
+  do {
+    tries++;
+    response = UrlFetchApp.fetch(url, params);
+
+    if (!isSuccess(response)) {
+      Utilities.sleep(5000);
+    }
+  }
+  while (!isSuccess(response) && tries < 10)
+
+  if (!isSuccess(response)) {
+    throw "Request [" + params.method + "] \"" + url + "\" failed with status code " + response.getResponseCode() + " after " + tries + " tries!";
+  }
+
+  var json = response.getContentText();
+
+  var data = JSON.parse(json);
+
+  return data;
+}
+
+function isSuccess(response) {
+  var code = response.getResponseCode();
+  
+  if (code >= 200 && code < 300) {
+    return true;
+  }
+
+  return false;
 }
