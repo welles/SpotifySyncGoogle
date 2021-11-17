@@ -79,9 +79,7 @@ function DiscoverWeekly() {
   for (var i = 0; i < discoverWeeklySongs.length; i++) {
     Logger.log("Adding \"%s\" by %s to Discover Weekly Backup...", discoverWeeklySongs[i].track.name, discoverWeeklySongs[i].track.artists[0].name);
     
-    addSongToPlaylist(accessToken, discoverWeeklySongs[i].track.uri, discoverWeeklyBackupPlaylistId);    
-
-    Utilities.sleep(1000);
+    addSongToPlaylist(accessToken, discoverWeeklySongs[i].track.uri, discoverWeeklyBackupPlaylistId);
   }
 
   Logger.log("Finished successfully!");
@@ -105,9 +103,7 @@ function ReleaseRadar() {
   for (var i = 0; i < releaseRadarSongs.length; i++) {
     Logger.log("Adding \"%s\" by %s to Release Radar Backup...", releaseRadarSongs[i].track.name, releaseRadarSongs[i].track.artists[0].name);
     
-    addSongToPlaylist(accessToken, releaseRadarSongs[i].track.uri, releaseRadarBackupPlaylistId);    
-
-    Utilities.sleep(1000);
+    addSongToPlaylist(accessToken, releaseRadarSongs[i].track.uri, releaseRadarBackupPlaylistId);
   }
 
   Logger.log("Finished successfully!");
