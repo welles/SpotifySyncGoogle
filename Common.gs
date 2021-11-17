@@ -171,11 +171,19 @@ function getJsonResult(url, params) {
   params.muteHttpExceptions = true;
 
   var response;
+  var responseMessage;
   var tries = 0;
 
   do {
     tries++;
-    response = UrlFetchApp.fetch(url, params);
+    try {
+      response = UrlFetchApp.fetch(url, params);
+      responseMessage = response.getResponseCode();
+    }
+    catch(exception) {
+      response = null;
+      responseMessage = exception;
+    }    
 
     if (!isSuccess(response)) {
       Utilities.sleep(5000);
@@ -184,7 +192,7 @@ function getJsonResult(url, params) {
   while (!isSuccess(response) && tries < 10)
 
   if (!isSuccess(response)) {
-    throw "Request [" + params.method + "] \"" + url + "\" failed with status code " + response.getResponseCode() + " after " + tries + " tries!";
+    throw "Request [" + params.method + "] \"" + url + "\" failed with error " + responseMessage + " after " + tries + " tries!";
   }
 
   var json = response.getContentText();
@@ -195,9 +203,7 @@ function getJsonResult(url, params) {
 }
 
 function isSuccess(response) {
-  var code = response.getResponseCode();
-  
-  if (code >= 200 && code < 300) {
+  if (response != null && response.getResponseCode() >= 200 && response.getResponseCode() < 300) {
     return true;
   }
 
