@@ -186,13 +186,15 @@ function getJsonResult(url, params) {
     }    
 
     if (!isSuccess(response)) {
+      Logger.log("Request [" + params.method + "] \"" + url + "\" failed with error \"" + responseMessage + "\". (Attempt #" + tries + ")");
+
       Utilities.sleep(5000);
     }
   }
   while (!isSuccess(response) && tries < 10)
 
   if (!isSuccess(response)) {
-    throw "Request [" + params.method + "] \"" + url + "\" failed with error " + responseMessage + " after " + tries + " tries!";
+    throw "Request [" + params.method + "] \"" + url + "\" was not able to complete after " + tries + " attempts!";
   }
 
   var json = response.getContentText();
