@@ -81,6 +81,12 @@ function DiscoverWeekly() {
   Logger.log("Found %s songs in Discover Weekly playlist.", discoverWeeklySongs.length);
 
   for (var i = 0; i < discoverWeeklySongs.length; i++) {
+    if (!discoverWeeklySongs[i].track) {
+      Logger.log("Skipping a song because the associated track object does not exist (anymore)...")
+      
+      continue;
+    }
+
     Logger.log("Adding \"%s\" by %s to Discover Weekly Backup...", discoverWeeklySongs[i].track.name, discoverWeeklySongs[i].track.artists[0].name);
     
     addSongToPlaylist(accessToken, discoverWeeklySongs[i].track.uri, discoverWeeklyBackupPlaylistId);
@@ -107,6 +113,12 @@ function ReleaseRadar() {
   Logger.log("Found %s songs in Release Radar playlist.", releaseRadarSongs.length);
 
   for (var i = 0; i < releaseRadarSongs.length; i++) {
+    if (!releaseRadarSongs[i].track) {
+      Logger.log("Skipping a song because the associated track object does not exist (anymore)...")
+      
+      continue;
+    }
+
     Logger.log("Adding \"%s\" by %s to Release Radar Backup...", releaseRadarSongs[i].track.name, releaseRadarSongs[i].track.artists[0].name);
     
     addSongToPlaylist(accessToken, releaseRadarSongs[i].track.uri, releaseRadarBackupPlaylistId);
