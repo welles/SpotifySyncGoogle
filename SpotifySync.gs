@@ -26,6 +26,8 @@ function SavedSongs() {
     Logger.log("Adding \"%s\" by %s to saved songs...", addedSongs[i].track.name, addedSongs[i].track.artists[0].name);
     
     addSongToPlaylist(accessToken, addedSongs[i].track.uri, savedSongsPlaylistId);
+
+    Utilities.sleep(5000);
   }
 
   var removedSongs = savedSongs.filter(s => !likedSongs.map(x => x.track.id).includes(s.track.id));
@@ -38,6 +40,8 @@ function SavedSongs() {
     removeSongFromPlaylist(accessToken, removedSongs[i].track.uri, savedSongsPlaylistId);
 
     addSongToPlaylist(accessToken, removedSongs[i].track.uri, savedArchivePlaylistId);
+    
+    Utilities.sleep(5000);
   }
 
   if (addedSongs.length > 0) {
@@ -80,6 +84,8 @@ function DiscoverWeekly() {
     Logger.log("Adding \"%s\" by %s to Discover Weekly Backup...", discoverWeeklySongs[i].track.name, discoverWeeklySongs[i].track.artists[0].name);
     
     addSongToPlaylist(accessToken, discoverWeeklySongs[i].track.uri, discoverWeeklyBackupPlaylistId);
+
+    Utilities.sleep(5000);
   }
 
   Logger.log("Finished successfully!");
@@ -104,6 +110,8 @@ function ReleaseRadar() {
     Logger.log("Adding \"%s\" by %s to Release Radar Backup...", releaseRadarSongs[i].track.name, releaseRadarSongs[i].track.artists[0].name);
     
     addSongToPlaylist(accessToken, releaseRadarSongs[i].track.uri, releaseRadarBackupPlaylistId);
+
+    Utilities.sleep(5000);
   }
 
   Logger.log("Finished successfully!");
