@@ -1,20 +1,17 @@
 function SavedSongs() {
-  var userProperties = PropertiesService.getUserProperties();
+  var spreadSheet = SpreadsheetApp.getActiveSpreadsheet();
 
-  var clientId = userProperties.getProperty("CLIENT_ID");
-  var clientSecret = userProperties.getProperty("CLIENT_SECRET");
-  var refreshToken = userProperties.getProperty("REFRESH_TOKEN");
-  var savedSongsPlaylistId = userProperties.getProperty("SAVED_SONGS_PLAYLIST_ID");
-  var savedArchivePlaylistId = userProperties.getProperty("SAVED_ARCHIVE_PLAYLIST_ID");
-  var spreadSheetId = userProperties.getProperty("SPREADSHEET_ID");
+  var savedSongsPlaylistId = spreadSheet.getRangeByName("SAVED_SONGS_PLAYLIST_ID").getValue();
+  var savedArchivePlaylistId = spreadSheet.getRangeByName("SAVED_ARCHIVE_PLAYLIST_ID").getValue();
 
-  var accessToken = getAccessToken(clientId, clientSecret, refreshToken);
+  var service = GetService_();
+  var accessToken = service.getAccessToken();
 
-  var likedSongs = getLikedSongs(accessToken);
+  var likedSongs = GetLikedSongs_(accessToken);
 
   Logger.log("Liked Songs: " + likedSongs.length);
 
-  var savedSongs = getPlaylistSongs(accessToken, savedSongsPlaylistId);
+  var savedSongs = GetPlaylistSongs_(accessToken, savedSongsPlaylistId);
 
   Logger.log("Saved Songs: " + savedSongs.length);
 
@@ -25,7 +22,7 @@ function SavedSongs() {
   for (var i = 0; i < addedSongs.length; i++) {
     Logger.log("Adding \"%s\" by %s to saved songs...", addedSongs[i].track.name, addedSongs[i].track.artists[0].name);
     
-    addSongToPlaylist(accessToken, addedSongs[i].track.uri, savedSongsPlaylistId);
+    AddSongToPlaylist_(accessToken, addedSongs[i].track.uri, savedSongsPlaylistId);
 
     Utilities.sleep(5000);
   }
@@ -37,9 +34,9 @@ function SavedSongs() {
   for (var i = 0; i < removedSongs.length; i++) {
     Logger.log("Removing \"%s\" by %s from saved songs...", removedSongs[i].track.name, removedSongs[i].track.artists[0].name);
     
-    removeSongFromPlaylist(accessToken, removedSongs[i].track.uri, savedSongsPlaylistId);
+    RemoveSongFromPlaylist_(accessToken, removedSongs[i].track.uri, savedSongsPlaylistId);
 
-    addSongToPlaylist(accessToken, removedSongs[i].track.uri, savedArchivePlaylistId);
+    AddSongToPlaylist_(accessToken, removedSongs[i].track.uri, savedArchivePlaylistId);
     
     Utilities.sleep(5000);
   }
@@ -47,36 +44,33 @@ function SavedSongs() {
   if (addedSongs.length > 0) {
     Logger.log("Adding added songs to sheet...");
 
-    addSheetEntriesForAddedSongs(spreadSheetId, addedSongs);
+    AddSheetEntriesForAddedSongs_(addedSongs);
   }
 
   if (removedSongs.length > 0) {
     Logger.log("Adding removed songs to sheet...");
 
-    addSheetEntriesForRemovedSongs(spreadSheetId, removedSongs);
+    AddSheetEntriesForRemovedSongs_(removedSongs);
   }
 
   if (addedSongs.length > 0 || removedSongs.length > 0) {
     Logger.log("Updating current songs list sheet...");
 
-    updateCurrentSongListSheet(spreadSheetId, likedSongs);
+    UpdateCurrentSongListSheet_(likedSongs);
   }
 
   Logger.log("Finished successfully!");
 }
 
 function DiscoverWeekly() {
-  var userProperties = PropertiesService.getUserProperties();
+  var spreadSheet = SpreadsheetApp.getActiveSpreadsheet();
+  var discoverWeeklyPlaylistId = spreadSheet.getRangeByName("DISCOVER_WEEKLY_PLAYLIST_ID").getValue();
+  var discoverWeeklyBackupPlaylistId = spreadSheet.getRangeByName("DISCOVER_WEEKLY_BACKUP_PLAYLIST_ID").getValue();
 
-  var clientId = userProperties.getProperty("CLIENT_ID");
-  var clientSecret = userProperties.getProperty("CLIENT_SECRET");
-  var refreshToken = userProperties.getProperty("REFRESH_TOKEN");
-  var discoverWeeklyPlaylistId = userProperties.getProperty("DISCOVER_WEEKLY_PLAYLIST_ID");
-  var discoverWeeklyBackupPlaylistId = userProperties.getProperty("DISCOVER_WEEKLY_BACKUP_PLAYLIST_ID");
+  var service = GetService_();
+  var accessToken = service.getAccessToken();
 
-  var accessToken = getAccessToken(clientId, clientSecret, refreshToken);
-
-  var discoverWeeklySongs = getPlaylistSongs(accessToken, discoverWeeklyPlaylistId).reverse();
+  var discoverWeeklySongs = GetPlaylistSongs_(accessToken, discoverWeeklyPlaylistId).reverse();
 
   Logger.log("Found %s songs in Discover Weekly playlist.", discoverWeeklySongs.length);
 
@@ -89,7 +83,7 @@ function DiscoverWeekly() {
 
     Logger.log("Adding \"%s\" by %s to Discover Weekly Backup...", discoverWeeklySongs[i].track.name, discoverWeeklySongs[i].track.artists[0].name);
     
-    addSongToPlaylist(accessToken, discoverWeeklySongs[i].track.uri, discoverWeeklyBackupPlaylistId);
+    AddSongToPlaylist_(accessToken, discoverWeeklySongs[i].track.uri, discoverWeeklyBackupPlaylistId);
 
     Utilities.sleep(5000);
   }
@@ -98,17 +92,14 @@ function DiscoverWeekly() {
 }
 
 function ReleaseRadar() {
-  var userProperties = PropertiesService.getUserProperties();
+  var spreadSheet = SpreadsheetApp.getActiveSpreadsheet();
+  var releaseRadarPlaylistId = spreadSheet.getRangeByName("RELEASE_RADAR_PLAYLIST_ID").getValue();
+  var releaseRadarBackupPlaylistId = spreadSheet.getRangeByName("RELEASE_RADAR_BACKUP_PLAYLIST_ID").getValue();
 
-  var clientId = userProperties.getProperty("CLIENT_ID");
-  var clientSecret = userProperties.getProperty("CLIENT_SECRET");
-  var refreshToken = userProperties.getProperty("REFRESH_TOKEN");
-  var releaseRadarPlaylistId = userProperties.getProperty("RELEASE_RADAR_PLAYLIST_ID");
-  var releaseRadarBackupPlaylistId = userProperties.getProperty("RELEASE_RADAR_BACKUP_PLAYLIST_ID");
+  var service = GetService_();
+  var accessToken = service.getAccessToken();
 
-  var accessToken = getAccessToken(clientId, clientSecret, refreshToken);
-
-  var releaseRadarSongs = getPlaylistSongs(accessToken, releaseRadarPlaylistId).reverse();
+  var releaseRadarSongs = GetPlaylistSongs_(accessToken, releaseRadarPlaylistId).reverse();
 
   Logger.log("Found %s songs in Release Radar playlist.", releaseRadarSongs.length);
 
@@ -121,7 +112,7 @@ function ReleaseRadar() {
 
     Logger.log("Adding \"%s\" by %s to Release Radar Backup...", releaseRadarSongs[i].track.name, releaseRadarSongs[i].track.artists[0].name);
     
-    addSongToPlaylist(accessToken, releaseRadarSongs[i].track.uri, releaseRadarBackupPlaylistId);
+    AddSongToPlaylist_(accessToken, releaseRadarSongs[i].track.uri, releaseRadarBackupPlaylistId);
 
     Utilities.sleep(5000);
   }

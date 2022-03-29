@@ -1,6 +1,10 @@
-function updateCurrentSongListSheet(spreadSheetId, likedSongs) {
-  var spreadSheet = SpreadsheetApp.openById(spreadSheetId);
-  var currentSheet = spreadSheet.getSheetByName("CURRENT");
+function UpdateCurrentSongListSheet_(likedSongs) {
+  var spreadSheet = SpreadsheetApp.getActiveSpreadsheet();
+  var currentSheet = spreadSheet.getSheetByName('CURRENT');
+  if (!currentSheet) {
+    spreadSheet.insertSheet('CURRENT');
+    currentSheet = spreadSheet.getSheetByName('CURRENT');
+  }
 
   currentSheet.clearContents();
 
@@ -33,9 +37,13 @@ function updateCurrentSongListSheet(spreadSheetId, likedSongs) {
   currentSheet.getRange(1, 1, likedSongs.length, 7).setValues(currentSongs);
 }
 
-function addSheetEntriesForAddedSongs(spreadSheetId, addedSongs) {
-  var spreadSheet = SpreadsheetApp.openById(spreadSheetId);
-  var logSheet = spreadSheet.getSheetByName("LOG");
+function AddSheetEntriesForAddedSongs_(addedSongs) {
+  var spreadSheet = SpreadsheetApp.getActiveSpreadsheet();
+  var logSheet = spreadSheet.getSheetByName('LOG');
+  if (!logSheet) {
+    spreadSheet.insertSheet('LOG');
+    logSheet = spreadSheet.getSheetByName('LOG');
+  }
 
   for (var i = 0; i < addedSongs.length; i++) {
     var song = addedSongs[i];
@@ -55,9 +63,13 @@ function addSheetEntriesForAddedSongs(spreadSheetId, addedSongs) {
   }
 }
 
-function addSheetEntriesForRemovedSongs(spreadSheetId, removedSongs) {
-  var spreadSheet = SpreadsheetApp.openById(spreadSheetId);
-  var logSheet = spreadSheet.getSheetByName("LOG");
+function AddSheetEntriesForRemovedSongs_(removedSongs) {
+  var spreadSheet = SpreadsheetApp.getActiveSpreadsheet();
+  var logSheet = spreadSheet.getSheetByName('LOG');
+  if (!logSheet) {
+    spreadSheet.insertSheet('LOG');
+    logSheet = spreadSheet.getSheetByName('LOG');
+  }
 
   for (var i = 0; i < removedSongs.length; i++) {
     var song = removedSongs[i];
@@ -77,7 +89,7 @@ function addSheetEntriesForRemovedSongs(spreadSheetId, removedSongs) {
   }
 }
 
-function addSongToPlaylist(accessToken, songUri, playlistId) {
+function AddSongToPlaylist_(accessToken, songUri, playlistId) {
   var payload =
   {
     position: 0,
@@ -92,10 +104,10 @@ function addSongToPlaylist(accessToken, songUri, playlistId) {
     payload: JSON.stringify(payload)
   };
 
-  var data = getJsonResult(url, params);
+  var data = GetJsonResult_(url, params);
 }
 
-function removeSongFromPlaylist(accessToken, songUri, playlistId) {
+function RemoveSongFromPlaylist_(accessToken, songUri, playlistId) {
   var payload =
   {
     tracks: [{uri: songUri}]
@@ -109,10 +121,10 @@ function removeSongFromPlaylist(accessToken, songUri, playlistId) {
     payload: JSON.stringify(payload)
   };
 
-  var data = getJsonResult(url, params);
+  var data = GetJsonResult_(url, params);
 }
 
-function getPlaylistSongs(accessToken, playlistId) {
+function GetPlaylistSongs_(accessToken, playlistId) {
   var playlistSongs = [];
 
   do {
@@ -123,7 +135,7 @@ function getPlaylistSongs(accessToken, playlistId) {
       headers: { "Authorization": "Bearer " + accessToken },
     };
 
-    var data = getJsonResult(url, params);
+    var data = GetJsonResult_(url, params);
 
     playlistSongs = playlistSongs.concat(data.items);
   }
@@ -132,7 +144,7 @@ function getPlaylistSongs(accessToken, playlistId) {
   return playlistSongs;
 }
 
-function getLikedSongs(accessToken) {
+function GetLikedSongs_(accessToken) {
   var likedSongs = [];
 
   do {
@@ -143,7 +155,7 @@ function getLikedSongs(accessToken) {
       headers: { "Authorization": "Bearer " + accessToken },
     };
 
-    var data = getJsonResult(url, params);
+    var data = GetJsonResult_(url, params);
 
     likedSongs = likedSongs.concat(data.items);
   }
@@ -152,21 +164,7 @@ function getLikedSongs(accessToken) {
   return likedSongs;
 }
 
-function getAccessToken(clientId, clientSecret, refreshToken) {
-  var url = "https://accounts.spotify.com/api/token";
-  var params =
-  {
-    method: "POST",
-    headers: { "Authorization": "Basic " + Utilities.base64Encode(clientId + ":" + clientSecret) },
-    payload: { grant_type: "refresh_token", refresh_token: refreshToken }
-  };
-
-  var data = getJsonResult(url, params);
-
-  return data.access_token;
-}
-
-function getJsonResult(url, params) {
+function GetJsonResult_(url, params) {
   //Override HTTP exception handling
   params.muteHttpExceptions = true;
 
@@ -185,15 +183,15 @@ function getJsonResult(url, params) {
       responseMessage = exception;
     }    
 
-    if (!isSuccess(response)) {
+    if (!IsSuccess_(response)) {
       Logger.log("Request [" + params.method + "] \"" + url + "\" failed with error \"" + responseMessage + "\". (Attempt #" + tries + ")");
 
       Utilities.sleep(5000);
     }
   }
-  while (!isSuccess(response) && tries < 10)
+  while (!IsSuccess_(response) && tries < 10)
 
-  if (!isSuccess(response)) {
+  if (!IsSuccess_(response)) {
     throw "Request [" + params.method + "] \"" + url + "\" was not able to complete after " + tries + " attempts!";
   }
 
@@ -204,7 +202,7 @@ function getJsonResult(url, params) {
   return data;
 }
 
-function isSuccess(response) {
+function IsSuccess_(response) {
   if (response != null && response.getResponseCode() >= 200 && response.getResponseCode() < 300) {
     return true;
   }
