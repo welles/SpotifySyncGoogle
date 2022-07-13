@@ -1,6 +1,7 @@
-function UpdateCurrentSongListSheet_(likedSongs) {
-  var spreadSheet = SpreadsheetApp.getActiveSpreadsheet();
-  var currentSheet = spreadSheet.getSheetByName('CURRENT');
+function updateCurrentSongListSheet_(likedSongs) {
+  const spreadSheet = SpreadsheetApp.getActiveSpreadsheet();
+
+  let currentSheet = spreadSheet.getSheetByName('CURRENT');
   if (!currentSheet) {
     spreadSheet.insertSheet('CURRENT');
     currentSheet = spreadSheet.getSheetByName('CURRENT');
@@ -8,7 +9,7 @@ function UpdateCurrentSongListSheet_(likedSongs) {
 
   currentSheet.clearContents();
 
-  var maxRows = currentSheet.getMaxRows();
+  const maxRows = currentSheet.getMaxRows();
   if (maxRows < likedSongs.length) {
     currentSheet.insertRows(1, likedSongs.length - maxRows);
   }
@@ -16,12 +17,10 @@ function UpdateCurrentSongListSheet_(likedSongs) {
     currentSheet.deleteRows(1, maxRows - likedSongs.length);
   }
 
-  var currentSongs = [];
+  let currentSongs = [];
 
-  for (var i = 0; i < likedSongs.length; i++) {
-    var song = likedSongs[i];
-    
-    var songInfo = [
+  for (song of likedSongs) {
+    let songInfo = [
       `=IMAGE(\"${song.track.album.images[0].url}\")`,
       song.track.name,
       song.track.artists[0].name,
@@ -37,18 +36,17 @@ function UpdateCurrentSongListSheet_(likedSongs) {
   currentSheet.getRange(1, 1, likedSongs.length, 7).setValues(currentSongs);
 }
 
-function AddSheetEntriesForAddedSongs_(addedSongs) {
-  var spreadSheet = SpreadsheetApp.getActiveSpreadsheet();
-  var logSheet = spreadSheet.getSheetByName('LOG');
+function addSheetEntriesForAddedSongs_(addedSongs) {
+  const spreadSheet = SpreadsheetApp.getActiveSpreadsheet();
+  
+  let logSheet = spreadSheet.getSheetByName('LOG');
   if (!logSheet) {
     spreadSheet.insertSheet('LOG');
     logSheet = spreadSheet.getSheetByName('LOG');
   }
 
-  for (var i = 0; i < addedSongs.length; i++) {
-    var song = addedSongs[i];
-    
-    var songInfo = [
+  for (song of addedSongs) {
+    const songInfo = [
       "Added",
       `=IMAGE(\"${song.track.album.images[0].url}\")`,
       song.track.name,
@@ -63,18 +61,17 @@ function AddSheetEntriesForAddedSongs_(addedSongs) {
   }
 }
 
-function AddSheetEntriesForRemovedSongs_(removedSongs) {
-  var spreadSheet = SpreadsheetApp.getActiveSpreadsheet();
-  var logSheet = spreadSheet.getSheetByName('LOG');
+function addSheetEntriesForRemovedSongs_(removedSongs) {
+  const spreadSheet = SpreadsheetApp.getActiveSpreadsheet();
+
+  let logSheet = spreadSheet.getSheetByName('LOG');
   if (!logSheet) {
     spreadSheet.insertSheet('LOG');
     logSheet = spreadSheet.getSheetByName('LOG');
   }
 
-  for (var i = 0; i < removedSongs.length; i++) {
-    var song = removedSongs[i];
-    
-    var songInfo = [
+  for (song of removedSongs) {
+    const songInfo = [
       "Removed",
       `=IMAGE(\"${song.track.album.images[0].url}\")`,
       song.track.name,
@@ -89,88 +86,103 @@ function AddSheetEntriesForRemovedSongs_(removedSongs) {
   }
 }
 
-function AddSongToPlaylist_(accessToken, songUri, playlistId) {
-  var payload =
+function addSongToPlaylist_(accessToken, songUri, playlistId) {
+  const payload =
   {
     position: 0,
     uris: [songUri]
   };
 
-  var url = "https://api.spotify.com/v1/playlists/" + playlistId + "/tracks";
-  var params =
+  const url = "https://api.spotify.com/v1/playlists/" + playlistId + "/tracks";
+  const params =
   {
     method: "POST",
     headers: { "Authorization": "Bearer " + accessToken },
     payload: JSON.stringify(payload)
   };
 
-  var data = GetJsonResult_(url, params);
+  getJsonResult_(url, params);
 }
 
-function RemoveSongFromPlaylist_(accessToken, songUri, playlistId) {
-  var payload =
+function removeSongFromPlaylist_(accessToken, songUri, playlistId) {
+  const payload =
   {
     tracks: [{uri: songUri}]
   };
 
-  var url = "https://api.spotify.com/v1/playlists/" + playlistId + "/tracks";
-  var params =
+  const url = "https://api.spotify.com/v1/playlists/" + playlistId + "/tracks";
+  const params =
   {
     method: "DELETE",
     headers: { "Authorization": "Bearer " + accessToken },
     payload: JSON.stringify(payload)
   };
 
-  var data = GetJsonResult_(url, params);
+  getJsonResult_(url, params);
 }
 
-function GetPlaylistSongs_(accessToken, playlistId) {
-  var playlistSongs = [];
+function getPlaylistSongs_(accessToken, playlistId) {
+  let playlistSongs = [];
+  let total = 0;
 
   do {
-    var url = "https://api.spotify.com/v1/playlists/" + playlistId + "/tracks?offset=" + playlistSongs.length;
-    var params =
+    const url = "https://api.spotify.com/v1/playlists/" + playlistId + "/tracks?offset=" + playlistSongs.length;
+    const params =
     {
       method: "GET",
       headers: { "Authorization": "Bearer " + accessToken },
     };
 
-    var data = GetJsonResult_(url, params);
+    const data = getJsonResult_(url, params);
+
+    if (data.total > total) {
+      total = data.total;
+    }
 
     playlistSongs = playlistSongs.concat(data.items);
   }
-  while (playlistSongs.length < data.total);
+  while (playlistSongs.length < total);
 
   return playlistSongs;
 }
 
-function GetLikedSongs_(accessToken) {
-  var likedSongs = [];
+function getLikedSongs_(accessToken) {
+  let likedSongs = [];
+  let total = 0;
 
   do {
-    var url = "https://api.spotify.com/v1/me/tracks?offset=" + likedSongs.length;
-    var params =
+    const url = "https://api.spotify.com/v1/me/tracks?limit=50&offset=" + likedSongs.length;
+
+    const params =
     {
       method: "GET",
       headers: { "Authorization": "Bearer " + accessToken },
     };
 
-    var data = GetJsonResult_(url, params);
+    const data = getJsonResult_(url, params);
+
+    if (data.total > total) {
+      total = data.total;
+    }
 
     likedSongs = likedSongs.concat(data.items);
   }
-  while (likedSongs.length < data.total);
+  while (likedSongs.length < total);
+
+  if (likedSongs.length == 0) {      
+    throw "Lied songs list was empty! That can't be right!"
+  }
 
   return likedSongs;
 }
 
-function GetJsonResult_(url, params) {
+function getJsonResult_(url, params) {
   //Override HTTP exception handling
   params.muteHttpExceptions = true;
 
-  var response;
-  var responseMessage;
-  var tries = 0;
+  let response;
+  let responseMessage;
+  let tries = 0;
 
   do {
     tries++;
@@ -183,26 +195,26 @@ function GetJsonResult_(url, params) {
       responseMessage = exception;
     }    
 
-    if (!IsSuccess_(response)) {
-      Logger.log("Request [" + params.method + "] \"" + url + "\" failed with error \"" + responseMessage + "\". (Attempt #" + tries + ")");
+    if (!isSuccess_(response)) {
+      Logger.log("Request [" + params.method + "] \"" + url + "\" with parameters " + JSON.stringify(params) + " failed with error \"" + responseMessage + "\". (Attempt #" + tries + ")");
 
       Utilities.sleep(5000);
     }
   }
-  while (!IsSuccess_(response) && tries < 10)
+  while (!isSuccess_(response) && tries < 10)
 
-  if (!IsSuccess_(response)) {
+  if (!isSuccess_(response)) {
     throw "Request [" + params.method + "] \"" + url + "\" was not able to complete after " + tries + " attempts!";
   }
 
-  var json = response.getContentText();
+  const json = response.getContentText();
 
-  var data = JSON.parse(json);
+  const data = JSON.parse(json);
 
   return data;
 }
 
-function IsSuccess_(response) {
+function isSuccess_(response) {
   if (response != null && response.getResponseCode() >= 200 && response.getResponseCode() < 300) {
     return true;
   }
